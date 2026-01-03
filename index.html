@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Luxury Raya Scratch & Win</title>
+<link href="https://fonts.googleapis.com/css2?family=Amiri&display=swap" rel="stylesheet">
+<style>
+body {
+  margin: 0;
+  padding: 0;
+  font-family: 'Amiri', serif;
+  background: radial-gradient(circle at top, #134e3a, #0f3d2e);
+  color: gold;
+  text-align: center;
+  overflow-x: hidden;
+}
+.container {
+  max-width: 380px;
+  margin: 50px auto;
+  background: rgba(19,78,58,0.9);
+  border-radius: 20px;
+  padding: 20px;
+  box-shadow: 0 0 30px rgba(255,215,0,0.7);
+  position: relative;
+}
+h1 {
+  font-size: 26px;
+  margin-bottom: 10px;
+  text-shadow: 0 0 10px gold;
+}
+p {
+  font-size: 16px;
+  margin-bottom: 20px;
+}
+button {
+  background: gold;
+  border: none;
+  padding: 12px 25px;
+  font-size: 16px;
+  border-radius: 10px;
+  cursor: pointer;
+  color: #0f3d2e;
+}
+.hidden { display: none; }
+
+.moon {
+  position: absolute;
+  top: -40px;
+  right: -40px;
+  width: 80px;
+  height: 80px;
+  background: gold;
+  border-radius: 50%;
+  box-shadow: 0 0 25px rgba(255,215,0,0.7);
+}
+.ketupat {
+  position: absolute;
+  bottom: -30px;
+  left: -30px;
+  width: 60px;
+  height: 60px;
+  background: gold;
+  transform: rotate(45deg);
+  box-shadow: 0 0 20px rgba(255,215,0,0.5);
+}
+
+.star {
+  position: absolute;
+  background: gold;
+  border-radius: 50%;
+  opacity: 0.8;
+  animation: twinkle 2s infinite;
+}
+@keyframes twinkle {
+  0%,100% {opacity: 0.8;}
+  50% {opacity: 0.2;}
+}
+
+canvas {
+  border-radius: 15px;
+  cursor: pointer;
+  margin-bottom: 20px;
+  box-shadow: 0 0 25px rgba(255,215,0,0.7);
+}
+</style>
+</head>
+<body>
+
+<div class="container" id="startScreen">
+  <div class="moon"></div>
+  <div class="ketupat"></div>
+  <h1>✨ Selamat Hari Raya ✨</h1>
+  <p>Scratch & Win Duit Raya! Everyone Wins 🎉</p>
+  <button onclick="startGame()">Scratch Now</button>
+</div>
+
+<div class="container hidden" id="gameScreen">
+  <h1>Scratch Here!</h1>
+  <canvas id="scratchCanvas" width="300" height="150"></canvas>
+  <p>Scratch the shimmering gold to reveal your prize!</p>
+</div>
+
+<div class="container hidden" id="resultScreen">
+  <h1>🎉 Tahniah! 🎉</h1>
+  <p id="prizeText"></p>
+  <p>Please show this screen to the host to receive your duit raya.</p>
+  <button onclick="restart()">Play Again</button>
+</div>
+
+<script>
+const prizes = ["$2", "$5", "$10"];
+let prize = "";
+
+for(let i=0;i<30;i++){
+  let star = document.createElement('div');
+  star.className='star';
+  star.style.width = star.style.height = Math.random()*3+2+'px';
+  star.style.top = Math.random()*window.innerHeight+'px';
+  star.style.left = Math.random()*window.innerWidth+'px';
+  document.body.appendChild(star);
+}
+
+function startGame() {
+  document.getElementById("startScreen").classList.add("hidden");
+  document.getElementById("gameScreen").classList.remove("hidden");
+  initScratch();
+}
+
+function initScratch() {
+  const canvas = document.getElementById("scratchCanvas");
+  const ctx = canvas.getContext("2d");
+
+  prize = prizes[Math.floor(Math.random() * prizes.length)];
+
+  let gradient = ctx.createLinearGradient(0,0,canvas.width,canvas.height);
+  gradient.addColorStop(0,"#ffd700");
+  gradient.addColorStop(0.5,"#e6c200");
+  gradient.addColorStop(1,"#ffd700");
+  ctx.fillStyle = gradient;
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  canvas.addEventListener("mousedown", scratch);
+  canvas.addEventListener("touchmove", scratch);
+
+  function scratch(e) {
+    e.preventDefault();
+    const rect = canvas.getBoundingClientRect();
+    const x = (e.clientX || e.touches[0].clientX) - rect.left;
+    const y = (e.clientY || e.touches[0].clientY) - rect.top;
+
+    ctx.globalCompositeOperation = "destination-out";
+    ctx.beginPath();
+    ctx.arc(x, y, 15, 0, 2*Math.PI);
+    ctx.fill();
+
+    const imgData = ctx.getImageData(0,0,canvas.width,canvas.height);
+    const pixels = imgData.data;
+    let transparentPixels = 0;
+    for(let i=3;i<pixels.length;i+=4){
+      if(pixels[i]<128) transparentPixels++;
+    }
+    if(transparentPixels>pixels.length*0.5){
+      endGame();
+    }
+  }
+}
+
+function endGame() {
+  document.getElementById("gameScreen").classList.add("hidden");
+  document.getElementById("resultScreen").classList.remove("hidden");
+  document.getElementById("prizeText").innerText = `You won ${prize} Duit Raya!`;
+}
+
+function restart() {
+  document.getElementById("resultScreen").classList.add("hidden");
+  document.getElementById("startScreen").classList.remove("hidden");
+}
+</script>
+
+</body>
+</html>
